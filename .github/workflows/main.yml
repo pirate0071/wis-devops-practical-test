@@ -1,0 +1,117 @@
+name: WIS DevOps Test Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # This allows manual triggering
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Make scripts executable
+        run: chmod +x ./.github/workflows/scripts/build.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21'
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./wp-content/themes/twentytwentyfour
+
+      - name: Run build script
+        run: ./.github/workflows/scripts/build.sh
+
+      - name: Create Artifacts
+        run: tar  -czf /tmp/artifacts.tar.gz ./ > /dev/null 
+
+      - name: Upload Compiled Assets
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: /tmp/artifacts.tar.gz
+
+  quality_gate:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Make scripts executable
+        run: chmod +x ./.github/workflows/scripts/phpstan_analysis.sh ./.github/workflows/scripts/sonar_analysis.sh
+
+      - name: Run PHPStan analysis
+        run: ./.github/workflows/scripts/phpstan_analysis.sh
+
+      - name: Run Sonar Quality Gate
+        uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  security_scan:
+    runs-on: ubuntu-latest
+    needs: [ build, quality_gate ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Make scripts executable
+        run: chmod +x ./.github/workflows/scripts/security-scan.sh
+      
+      - name: Run security scan
+        run: ./.github/workflows/scripts/security-scan.sh
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ build, quality_gate, security_scan ]
+    steps:
+      - name: Download source code
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+
+      - name: Extract artifacts
+        run: mkdir artifacts && tar -xzf artifacts.tar.gz -C artifacts > /dev/null 2>&1
+
+      - name: Make scripts executable
+        run: chmod +x ./artifacts/.github/workflows/scripts/deploy.sh
+
+      - name: Run deploy script
+        run: ./artifacts/.github/workflows/scripts/deploy.sh
+        env:
+         DB_NAME: ${{ secrets.DB_NAME }}
+         DB_USER: ${{ secrets.DB_USER }}
+         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+         SSH_HOST: ${{ secrets.SSH_HOST }}
+         SSH_USER: ${{ secrets.SSH_USER }}
+         SSH_KEY: ${{ secrets.SSH_KEY }}
+         SSH_PORT: ${{ secrets.SSH_PORT }}
+         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+  
+  mysql_backup:
+      runs-on: ubuntu-latest
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      continue-on-error: true
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Make scripts executable
+          run: chmod +x ./.github/workflows/scripts/mysql_backup.sh      

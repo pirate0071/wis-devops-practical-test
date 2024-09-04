@@ -1,2 +1,1 @@
-# wis-devops-practical-test
-DevOps Practical Test
+# wis-test1
