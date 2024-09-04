@@ -1,0 +1,35 @@
+.TH MYSQL_BACKUP 1 "Mer  4 sep 2024 19:55:44 +05" "MySQL Backup Script for WIS - DevOps Practical Test" "User Commands"
+.SH NAME
+mysql_backup \- A script to backup MySQL databases for WIS DevOps Practical Test
+.SH SYNOPSIS
+.B mysql_backup
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+This script creates a compressed backup of a MySQL database and stores it in a local directory.
+.PP
+The script supports command-line arguments to configure the database connection, backup location, and retention period.
+.SH OPTIONS
+.TP
+.BI \-d \ db_name
+Specify the database name (mandatory).
+.TP
+.BI \-u \ db_user
+Specify the database user (mandatory).
+.TP
+.BI \-b \ backup_dir
+Specify the local backup directory (mandatory).
+.TP
+.BI \-h \ db_host
+Specify the database host (default: localhost).
+.TP
+.BI \-P \ db_port
+Specify the database port (default: 3306).
+.TP
+.BI \-R \ retention_days
+Specify the number of days to retain backups (default: 7).
+.TP
+.BI \-c
+Perform cleanup of old backups.
+.TP
+.BI \-m
+Generate a man page for the script.
