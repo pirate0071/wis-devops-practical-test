@@ -26,6 +26,8 @@ EXCLUDE_LIST=(
   "sonar-project.properties"
   "README.md"
   "gulpfile.js"
+  "mysql_backup_script"
+  "docs"
 )
 
 # Check if db name environment variables are set
