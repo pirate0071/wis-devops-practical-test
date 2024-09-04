@@ -74,4 +74,4 @@ else
 fi
 
 echo "Deploying with rsync..."
-sshpass -p "$SSH_KEY" rsync -rvz -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=no" --progress "${EXCLUDE_LIST[@]/#/--exclude=}" ./artifacts/ ${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH}
+sshpass -p "$SSH_KEY" rsync -rz -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=no" --progress "${EXCLUDE_LIST[@]/#/--exclude=}" ./artifacts/ ${SSH_USER}@${SSH_HOST}:${DEPLOY_PATH}
