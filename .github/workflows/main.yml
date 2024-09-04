@@ -1,10 +1,9 @@
-name: WIS DevOps Test Pipeline
+name: WIS DevOps Practical Test Pipeline
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # This allows manual triggering
       
 jobs:
   build:
@@ -103,15 +102,4 @@ jobs:
          SSH_USER: ${{ secrets.SSH_USER }}
          SSH_KEY: ${{ secrets.SSH_KEY }}
          SSH_PORT: ${{ secrets.SSH_PORT }}
-         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-  
-  mysql_backup:
-      runs-on: ubuntu-latest
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      continue-on-error: true
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-
-        - name: Make scripts executable
-          run: chmod +x ./.github/workflows/scripts/mysql_backup.sh      
+         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}     
